@@ -1,23 +1,27 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState, useEffect } from "react";
+import "./App.css";
+import { Link, Route, Routes } from "react-router-dom";
+import Persons from "./components/Persons";
+import Register from "./components/Register";
+import Main from "./components/Main";
+import CreateExp from "./components/CreateExp";
+import CreateServ from "./components/CreateServ";
+import CreateMot from "./components/CreateMot";
 
 function App() {
+  
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      
+
+      <Routes>
+        <Route path="/" element={<Main />} />
+        <Route path="/createPerson" element={<Register />} />
+        <Route path="/createExp/:id" element={<CreateExp/>} />
+        <Route path="/createServ" element={<CreateServ/>} />
+        <Route path="/createMotiv" element={<CreateMot/>} />
+      </Routes>
     </div>
   );
 }
