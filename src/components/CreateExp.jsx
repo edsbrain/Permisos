@@ -1,4 +1,4 @@
-import { doc, getDoc } from "firebase/firestore";
+import { arrayUnion, doc, getDoc, updateDoc } from "firebase/firestore";
 import React from "react";
 import { useEffect } from "react";
 import { useState } from "react";
@@ -6,14 +6,23 @@ import { useNavigate, useParams } from "react-router-dom";
 import db from "../fb";
 import DatePicker from "react-date-picker";
 import "react-calendar/dist/Calendar.css";
+import { async } from "@firebase/util";
 
 function CreateExp() {
   let params = useParams();
   let navigate = useNavigate();
+  let initialState = {
+    nroExp: "",
+    selServ: "",
+    selMotiv: "",
+    nroRes: "",
+  };
 
   let [client, setClient] = useState({});
   let [time, setTime] = useState(new Date());
   let [timeRes, setTimeRes] = useState(new Date());
+  let [data, setData] = useState(initialState);
+  
   let [servicios, setServicios] = useState({});
   let [motivos, setMotivos] = useState({});
 
@@ -52,10 +61,10 @@ function CreateExp() {
   };
 
   const addService = async () => {
-    navigate('/createServ')
+    navigate("/createServ");
   };
   const addMotivo = async () => {
-    navigate('/createMotiv')
+    navigate("/createMotiv");
   };
 
   const getMotivos = async () => {
@@ -65,6 +74,29 @@ function CreateExp() {
   };
 
   const closeExp = () => {
+    navigate("/");
+  };
+
+  const handleChange = (e) => {
+    setData({
+      ...data,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const saveExp = async() => {
+    data.dias=dias
+    data.diaI = time[0]
+    data.diaF = time[1]
+    data.fecha= timeRes
+    data.year=timeRes.getFullYear()
+
+   const docRef = doc(db,"personas",params.id)
+   await updateDoc(docRef,{
+    exp:arrayUnion(data)
+   })
+
+  
     navigate("/");
   };
 
@@ -87,22 +119,28 @@ function CreateExp() {
               type="text"
               className="form-control"
               placeholder="Ingresa numero expediente"
+              name="nroExp"
+              onChange={(e) => handleChange(e)}
             />
           </div>
           <div className="mb-3">
             <label className="form-label">Servicio</label>
             <div className="input-group mb-3">
               <select
+                onChange={(e) => handleChange(e)}
                 className="form-select"
                 aria-label="Default select example"
+                name="selServ"
               >
-                <option selected>Seleccionar servicio</option>
+                <option selected disabled>
+                  Seleccionar servicio
+                </option>
                 {servicios.serv &&
                   servicios.serv.map((service) => {
                     return (
                       <option
                         key={servicios.serv.indexOf(service)}
-                        value={servicios.serv.indexOf(service)}
+                        value={service}
                       >
                         {service}
                       </option>
@@ -124,45 +162,34 @@ function CreateExp() {
               <select
                 className="form-select"
                 aria-label="Default select example"
+                name="selMotiv"
+                onChange={(e) => handleChange(e)}
               >
-                <option selected>Seleccionar Motivo</option>
+                <option selected disabled>
+                  Seleccionar Motivo
+                </option>
                 {motivos.motiv &&
                   motivos.motiv.map((motives) => {
                     return (
                       <option
                         key={motivos.motiv.indexOf(motives)}
-                        value={motivos.motiv.indexOf(motives)}
+                        value={motives}
                       >
                         {motives}
                       </option>
                     );
                   })}
               </select>
-              <button className="btn btn-outline-warning" type="button" onClick={addMotivo}>
+              <button
+                className="btn btn-outline-warning"
+                type="button"
+                onClick={addMotivo}
+              >
                 +
               </button>
             </div>
           </div>
-          <hr />
-          <div className="row">
-            <div className="mb-3 col-6">
-              <label className="form-label">Dias con goze</label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Ingresa dias de goze"
-              />
-            </div>
-
-            <div className="mb-3 col-6">
-              <label className="form-label">Subsidio</label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Ingresa dias de subsidio"
-              />
-            </div>
-          </div>
+          
           <hr />
           <div className="mb-3 row">
             <label className="form-label">Periodo</label>
@@ -188,6 +215,8 @@ function CreateExp() {
                   type="text"
                   className="form-control"
                   placeholder={`${dias} dias`}
+                  name="diasCount"
+                  onChange={(e) => handleChange(e)}
                 />
               </fieldset>
             </div>
@@ -199,6 +228,8 @@ function CreateExp() {
               type="text"
               className="form-control"
               placeholder="Ingresa numero de resolucion"
+              name="nroRes"
+              onChange={(e) => handleChange(e)}
             />
           </div>
           <hr />
@@ -207,7 +238,7 @@ function CreateExp() {
             <DatePicker
               className="col-6"
               locale="es-ES"
-              returnValue="range"
+              returnValue="start"
               dayPlaceholder="dd"
               monthPlaceholder="mm"
               yearPlaceholder="yyyy"
@@ -227,7 +258,11 @@ function CreateExp() {
               Cancelar
             </button>
             <div className="col-2"></div>
-            <button type="button" className="btn btn-success col-5 ">
+            <button
+              onClick={saveExp}
+              type="button"
+              className="btn btn-success col-5 "
+            >
               Guardar
             </button>
           </div>

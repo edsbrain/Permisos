@@ -1,9 +1,16 @@
 import React, { useEffect, useState } from "react";
 import db from "../fb";
 
-import { arrayUnion, collection, doc, onSnapshot, setDoc, updateDoc } from "firebase/firestore";
+import {
+  arrayUnion,
+  collection,
+  doc,
+  getDoc,
+  onSnapshot,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore";
 import { Link } from "react-router-dom";
-
 
 function Persons() {
   const [data, setData] = useState([]);
@@ -15,16 +22,43 @@ function Persons() {
         dato.push({ ...dat.data(), id: dat.id });
       });
       setData(dato);
-      
     });
   }
 
   
 
-  
+  const transfDate=(objDate)=>{
+    let fecha = new Date(objDate.seconds*1000)
+    let dato = `${fecha.getDate()}/${fecha.getMonth()+1}/${fecha.getFullYear()}`
+    return dato
+  }
+
+  const contDias = (array)=>{
+    let diasTotales = 0;
+    let dias = {
+      goz : 0,
+      sub : 0,
+    }
+
+    array.forEach((obj)=>{
+      diasTotales = diasTotales + obj.dias
+    })
+
+    if(diasTotales <= 20 ){
+      dias.goz = diasTotales
+    }else if(diasTotales > 20){
+      dias.goz=20;
+      dias.sub = diasTotales-20
+    }
+
+
+    return dias
+
+  }
 
   useEffect(() => {
     getPersons();
+    
   }, []);
 
   return (
@@ -54,7 +88,6 @@ function Persons() {
                   >
                     {`${dat.name} ${dat.lastName} ( ${dat.phone} )`}
                   </button>
-                
                 </h2>
                 <div
                   id={`panel-${dat.id}`}
@@ -62,9 +95,44 @@ function Persons() {
                   aria-labelledby="panelsStayOpen-headingTwo"
                 >
                   <div className="accordion-body">
-                  <Link to={`/createExp/${dat.id}`}>
-                  <button  type="button" className="btn btn-warning btn-sm">Agregar Nuevo Expediente</button>
-                  </Link>
+                  
+
+                    <h5>Dias con goze: {contDias(dat.exp).goz}</h5>
+                    <h5>Dias de subsidio: {contDias(dat.exp).sub}</h5>
+                    <Link to={`/createExp/${dat.id}`}>
+                      <button type="button" className="btn btn-warning btn-sm">
+                        Agregar Nuevo Expediente
+                      </button>
+                    </Link>
+                    <table className="table table-striped">
+                      <thead>
+                        <tr>
+                          <th scope="col">Numero Expediente</th>
+                          <th scope="col">Servicio</th>
+                          <th scope="col">Motivo</th>
+                          <th scope="col">Fecha inicial</th>
+                          <th scope="col">fecha final</th>
+                          <th scope="col">cantidad de dias</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {dat.exp.map((obj) => {
+
+                          return (
+                            <tr key={obj.nroExp}>
+                              <td>{obj.nroExp}</td>
+                              <td>{obj.selServ}</td>
+                              <td>{obj.selMotiv}</td>
+                              <td>{transfDate(obj.diaI)}</td>
+                              <td>{transfDate(obj.diaF)}</td>
+                              <td>{obj.dias}</td>
+
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  
                   </div>
                 </div>
               </div>

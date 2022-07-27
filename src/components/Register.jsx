@@ -12,6 +12,8 @@ function Register() {
     name: "",
     lastName: "",
     phone: "",
+    dgoze:0,
+    subsid:0,
   };
 
   const [info, setInfo] = useState(initialValue);
